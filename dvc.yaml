@@ -1,0 +1,16 @@
+stages:
+  processa:
+    cmd: python src/processa.py
+    deps:
+      - src/processa.py
+    outs:
+      - data/raw/wine_raw.csv
+      - data/processed/wine_processado.csv
+  
+  treina:
+    cmd: python src/train.py
+    deps:
+      - data/processed/wine_processado.csv
+      - src/train.py
+    params:
+      - wine_params.yaml
