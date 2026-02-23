@@ -57,6 +57,6 @@ Thumbs.db
 *.log
 logs/
 
-# removendo todos os arquivos de dados e csvs para evitar que sejam acidentalmente versionados
-data/
-*.csv
+# removendo todos caminhos dentro de data/ que contenham os arquivos de dados e csvs para evitar que sejam acidentalmente versionados
+data/*/*.csv
+data/*/*.xlsx
