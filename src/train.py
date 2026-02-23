@@ -23,11 +23,17 @@ def treinar_modelo(X_train, y_train, X_test, y_test, caminho_db):
         ["git", "rev-parse", "HEAD"]
     ).decode().strip()
     # encontrando o hash do dataset atual utilizado nesta run
-    with open("dvc.lock", 'rb') as f:
-        deps = yaml.safe_load(f)['stages']['train']['deps']  
-    for dep in deps:
-        if dep['path'] == caminho_db:  
-            dvc_md5 = dep['md5']  
+    with open("dvc.lock", 'r') as f:
+        dvc_lock = yaml.safe_load(f)
+        # Busca o MD5 nos outputs do stage 'processa'
+        outs = dvc_lock['stages']['processa']['outs']
+    
+    dvc_md5 = None
+    caminho_normalizado = caminho_db.replace('\\', '/')
+    for out in outs:
+        if out['path'] == caminho_normalizado:
+            dvc_md5 = out['md5']
+            break  
 
     # Experimento atual
     mlflow.set_experiment(f"Wine_Classification_{commit}")  
@@ -38,22 +44,22 @@ def treinar_modelo(X_train, y_train, X_test, y_test, caminho_db):
         mlflow.log_param("dvc_md5", dvc_md5)
 
         parametros = importar_parametros(r'wine_params.yaml')
-        modelo = RandomForestClassifier(random_state=42, max_depth=parametros["max_depth"], n_estimators=parametros["n_estimators"])
+        modelo = RandomForestClassifier(random_state=42, max_depth=parametros["train"]["max_depth"], n_estimators=parametros["train"]["n_estimators"])
         modelo.fit(X_train, y_train)
 
         y_pred = modelo.predict(X_test)
         acc = accuracy_score(y_test, y_pred)
 
-        mlflow.log_param("max_depth", parametros["max_depth"])
-        mlflow.log_param("n_estimators", parametros["n_estimators"])
+        mlflow.log_param("max_depth", parametros["train"]["max_depth"])
+        mlflow.log_param("n_estimators", parametros["train"]["n_estimators"])
         mlflow.log_metric("accuracy", acc)
 
         acc = accuracy_score(y_test, y_pred)
         cm = confusion_matrix(y_test, y_pred)
 
         # Log dos parametros e metricas do modelo para acompanhamento e comparação futura
-        mlflow.log_param("max_depth", parametros["max_depth"])
-        mlflow.log_param("n_estimators", parametros["n_estimators"])
+        mlflow.log_param("max_depth", parametros["train"]["max_depth"])
+        mlflow.log_param("n_estimators", parametros["train"]["n_estimators"])
         mlflow.log_metric("accuracy", acc)
         
         plt.figure(figsize=(8, 6))
@@ -79,7 +85,7 @@ def main():
 
     mlflow.set_tracking_uri("https://dagshub.com/guifzy/mlflow_teste.mlflow")  # Configura o MLflow para usar o DagsHub como backend
 
-    caminho_db = r'data\raw\wine.csv'
+    caminho_db = r'data\processed\wine_processado.csv'
     df = pd.read_csv(caminho_db)
     X = df.drop('target', axis=1)
     y = df['target']

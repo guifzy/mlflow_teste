@@ -12,5 +12,4 @@ stages:
     deps:
       - data/processed/wine_processado.csv
       - src/train.py
-    params:
       - wine_params.yaml

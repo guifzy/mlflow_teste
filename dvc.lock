@@ -1,0 +1,33 @@
+schema: '2.0'
+stages:
+  processa:
+    cmd: python src/processa.py
+    deps:
+    - path: src/processa.py
+      hash: md5
+      md5: 2b88f50a338edef7b4fb770f2be0af97
+      size: 1028
+    outs:
+    - path: data/processed/wine_processado.csv
+      hash: md5
+      md5: e6dccd29b15c08636f50bd2c0fd80a6a
+      size: 12440
+    - path: data/raw/wine_raw.csv
+      hash: md5
+      md5: e6dccd29b15c08636f50bd2c0fd80a6a
+      size: 12440
+  treina:
+    cmd: python src/train.py
+    deps:
+    - path: data/processed/wine_processado.csv
+      hash: md5
+      md5: e6dccd29b15c08636f50bd2c0fd80a6a
+      size: 12440
+    - path: src/train.py
+      hash: md5
+      md5: 2b69d613369d0d837d7592ee57a8cc8d
+      size: 3914
+    - path: wine_params.yaml
+      hash: md5
+      md5: c7344991eead0a7a54de0103e8d49661
+      size: 42
